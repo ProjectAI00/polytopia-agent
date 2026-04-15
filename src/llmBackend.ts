@@ -21,21 +21,21 @@
  *
  * Defaults:
  *   Bedrock:      us.anthropic.claude-haiku-4-5-20251001-v1:0
- *   OpenAI-compat: gpt-4.1-mini
+ *   OpenAI-compat: gpt-4.5-mini
  *
  * Good OpenRouter models (as of 2026):
  *   anthropic/claude-haiku-4-5-20251001  — fast, cheap
  *   anthropic/claude-sonnet-4-6          — balanced
  *   google/gemini-2.5-flash              — fast alternative
  *   meta-llama/llama-4-scout             — open-weight option
- *   openai/gpt-4.1-mini                  — OpenAI budget
+ *   openai/gpt-4.5-mini                  — OpenAI budget
  */
 
 const PROVIDER = process.env.LLM_PROVIDER ?? "bedrock";
 const MODEL = process.env.LLM_MODEL ?? (
   PROVIDER === "bedrock"
     ? "us.anthropic.claude-haiku-4-5-20251001-v1:0"
-    : "gpt-4.1-mini"
+    : "gpt-4.5-mini"
 );
 
 export function getLLMInfo(): string {
