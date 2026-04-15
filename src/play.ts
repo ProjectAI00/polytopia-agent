@@ -6,7 +6,7 @@
  *
  * Requires:
  *   - Polytopia running on external-bot-controller branch, cl_controlport 5060
- *   - Mamba server: cd polytopia-bench && /Users/aimar/.imi/venv/bin/python3 world_model/server.py --checkpoint checkpoints/best_v2.pt --port 7331
+ *   - Mamba server: cd polytopia-bench && /Users/aimar/.imi/venv/bin/python3 world_model/server.py --checkpoint checkpoints/polytopia-world-model.pt --port 7331
  */
 
 import { getBotTurn, sendCommand } from "./gameApi.js";

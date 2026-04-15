@@ -22,9 +22,9 @@ Requires Python with `torch` and `transformers`:
 pip install torch transformers
 ```
 
-The model checkpoint (`best_v2.pt`) lives in the `polytopia-bench` repo. Place it at:
+The model checkpoint (`polytopia-world-model.pt`) lives in the `polytopia-bench` repo. Place it at:
 ```
-../polytopia-bench/checkpoints/best_v2.pt
+../polytopia-bench/checkpoints/polytopia-world-model.pt
 ```
 
 ### 3. Launch Polytopia
@@ -40,7 +40,7 @@ Start or join a game where your bot is a player.
 
 ```bash
 cd ../polytopia-bench
-python3 world_model/server.py --checkpoint checkpoints/best_v2.pt --port 7331
+python3 world_model/server.py --checkpoint checkpoints/polytopia-world-model.pt --port 7331
 ```
 
 ### 5. Run the bot

@@ -15,7 +15,7 @@
  * World model config (mamba/hybrid modes):
  *   HYBRID_TOP_N=3               (how many candidates to pass to LLM)
  *   Mamba server must be running: cd polytopia-bench &&
- *     python3 world_model/server.py --checkpoint checkpoints/best_v2.pt --port 7331
+ *     python3 world_model/server.py --checkpoint checkpoints/polytopia-world-model.pt --port 7331
  *
  * Usage:
  *   npm run bot                        → mamba
@@ -132,7 +132,7 @@ async function main() {
     if (!mambaOk) {
       console.error(
         "Mamba server not running on :7331. Start it first:\n" +
-        "  cd polytopia-bench && python3 world_model/server.py --checkpoint checkpoints/best_v2.pt --port 7331"
+        "  cd polytopia-bench && python3 world_model/server.py --checkpoint checkpoints/polytopia-world-model.pt --port 7331"
       );
       process.exit(1);
     }

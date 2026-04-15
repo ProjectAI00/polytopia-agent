@@ -50,7 +50,7 @@ Choose the best of these ${candidates.length} options. Respond ONLY with JSON: {
 async function main() {
   const mambaOk = await checkMamba();
   if (!mambaOk) {
-    console.error("Mamba server not running on :7331. Start it first:\n  cd polytopia-bench && python3 world_model/server.py --checkpoint checkpoints/best_v2.pt --port 7331");
+    console.error("Mamba server not running on :7331. Start it first:\n  cd polytopia-bench && python3 world_model/server.py --checkpoint checkpoints/polytopia-world-model.pt --port 7331");
     process.exit(1);
   }
   console.log(`Hybrid bot (Mamba top-${TOP_N} → ${getLLMInfo()}). Waiting...\n`);
