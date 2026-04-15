@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 MODEL_DIR = ROOT / "model"
 MODEL_PATH = MODEL_DIR / "polytopia-world-model.pt"
-HF_REPO = "ProjectAI00/polytopia-world-model"
+HF_REPO = "aimar00/polytopia-world-model"
 
 # ── Step 1: Python deps ───────────────────────────────────────────────────────
 
