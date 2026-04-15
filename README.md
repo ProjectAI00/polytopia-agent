@@ -97,7 +97,7 @@ BOT_MODE=llm \
 | `anthropic/claude-sonnet-4-6` | Medium | Better strategic reasoning |
 | `google/gemini-2.5-flash` | Fast | Cheap alternative |
 | `meta-llama/llama-4-scout` | Fast | Open-weight option |
-| `openai/gpt-4.5-mini` | Fast | OpenAI budget option |
+| `openai/gpt-5.4-mini` | Fast | OpenAI budget option |
 
 ---
 
