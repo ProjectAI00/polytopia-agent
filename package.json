@@ -1,0 +1,26 @@
+{
+  "name": "polytopia-agent",
+  "version": "0.1.0",
+  "description": "External bot controller for Polytopia — wires Mamba world model to the official game API",
+  "scripts": {
+    "bot": "tsx src/bot.ts",
+    "bot:mamba": "BOT_MODE=mamba tsx src/bot.ts",
+    "bot:hybrid": "BOT_MODE=hybrid tsx src/bot.ts",
+    "bot:llm": "BOT_MODE=llm tsx src/bot.ts",
+    "play": "tsx src/play.ts",
+    "dev": "tsx watch src/bot.ts",
+    "dump-state": "tsx src/dumpState.ts",
+    "diagnose": "tsx src/diagnose.ts",
+    "llm": "tsx src/llmPlay.ts",
+    "hybrid": "tsx src/hybridPlay.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.28.1",
+    "@anthropic-ai/sdk": "^0.89.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

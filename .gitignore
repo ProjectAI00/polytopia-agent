@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.js
+state_dump.json
+.env
+sessions/*.jsonl
