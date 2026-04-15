@@ -1,37 +1,47 @@
 /**
  * bot.ts — Unified Polytopia bot.
  *
- * Three modes, set via BOT_MODE env var:
- *   mamba   → Pure world model, no LLM (default; ships standard)
- *   hybrid  → World model ranks all → LLM picks from top-N candidates
- *   llm     → Pure LLM, no world model
+ * BOT_MODE=mamba   → Pure world model (default)
+ * BOT_MODE=hybrid  → World model top-N → LLM picks
+ * BOT_MODE=llm     → Pure LLM
  *
- * LLM config (hybrid/llm modes) — pluggable, any API:
- *   LLM_PROVIDER=bedrock|openai  (default: bedrock)
- *   LLM_MODEL=<model id>
- *   LLM_API_KEY=<key>            (openai provider)
- *   LLM_BASE_URL=<url>           (openai provider; e.g. https://openrouter.ai/api/v1)
- *
- * World model config (mamba/hybrid modes):
- *   HYBRID_TOP_N=3               (how many candidates to pass to LLM)
- *   Mamba server must be running: cd polytopia-bench &&
- *     python3 world_model/server.py --checkpoint checkpoints/polytopia-world-model.pt --port 7331
- *
- * Usage:
- *   npm run bot                        → mamba
- *   BOT_MODE=hybrid npm run bot        → hybrid (Mamba + default LLM)
- *   BOT_MODE=llm LLM_PROVIDER=openai \
- *     LLM_BASE_URL=https://openrouter.ai/api/v1 \
- *     LLM_MODEL=google/gemini-flash-1.5 \
- *     LLM_API_KEY=sk-... npm run bot   → llm via OpenRouter
+ * The world model server starts automatically if not already running.
+ * Run `npm install` once to download the model.
  */
 
+import { spawn } from "child_process";
+import path from "path";
 import { getBotTurn, sendCommand } from "./gameApi.js";
 import { prepareRankInput } from "./adapter.js";
 import { rankActions, checkMamba } from "./mambaClient.js";
 import { buildPrompt } from "./llmFormatter.js";
 import { askLLM, getLLMInfo } from "./llmBackend.js";
 import { Session, TurnEntry } from "./session.js";
+
+const MODEL_PATH = path.join(process.cwd(), "model", "polytopia-world-model.pt");
+const SERVER_SCRIPT = path.join(process.cwd(), "world_model", "server.py");
+
+async function startMambaServer(): Promise<void> {
+  if (await checkMamba()) return;
+
+  console.log("Starting world model server...");
+  const proc = spawn("python3", [SERVER_SCRIPT, "--checkpoint", MODEL_PATH, "--port", "7331"], {
+    detached: true,
+    stdio: ["ignore", "ignore", "ignore"],
+    cwd: process.cwd(),
+  });
+  proc.unref();
+
+  // Wait up to 30s for the server to be ready (model load takes a few seconds)
+  for (let i = 0; i < 30; i++) {
+    await sleep(1000);
+    if (await checkMamba()) {
+      console.log("World model server ready.\n");
+      return;
+    }
+  }
+  throw new Error("World model server failed to start. Check that Python deps are installed: npm install");
+}
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -126,16 +136,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Verify Mamba server if needed
   if (MODE === "mamba" || MODE === "hybrid") {
-    const mambaOk = await checkMamba();
-    if (!mambaOk) {
-      console.error(
-        "Mamba server not running on :7331. Start it first:\n" +
-        "  cd polytopia-bench && python3 world_model/server.py --checkpoint checkpoints/polytopia-world-model.pt --port 7331"
-      );
-      process.exit(1);
-    }
+    await startMambaServer();
   }
 
   const llmInfo = MODE !== "mamba" ? getLLMInfo() : undefined;

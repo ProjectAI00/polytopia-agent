@@ -1,10 +1,10 @@
 # polytopia-agent
 
-AI bot for [The Battle of Polytopia](https://store.steampowered.com/app/874390/The_Battle_of_Polytopia/) using a Mamba 130M world model trained on 41K games. Plug in an LLM on top for hybrid mode.
+AI bot for [The Battle of Polytopia](https://store.steampowered.com/app/874390/The_Battle_of_Polytopia/) using a Mamba 130M world model trained on 41K games.
 
 ---
 
-## Quick start
+## Play
 
 ### 1. Clone and install
 
@@ -14,43 +14,23 @@ cd polytopia-agent
 npm install
 ```
 
-### 2. Set up the world model
+`npm install` automatically downloads the Polytopia World Model from HuggingFace and installs the Python dependencies (`torch`, `transformers`). This takes a minute the first time.
 
-Requires Python with `torch` and `transformers`:
+### 2. Launch Polytopia
 
-```bash
-pip install torch transformers
-```
-
-The model checkpoint (`polytopia-world-model.pt`) lives in the `polytopia-bench` repo. Place it at:
-```
-../polytopia-bench/checkpoints/polytopia-world-model.pt
-```
-
-### 3. Launch Polytopia
-
-Open Polytopia on Steam with the external bot controller enabled:
+Open the game with the external bot controller enabled:
 ```
 cl_controlport 5060
 ```
-
 Start or join a game where your bot is a player.
 
-### 4. Start the model server
+### 3. Run the bot
 
 ```bash
-cd ../polytopia-bench
-python3 world_model/server.py --checkpoint checkpoints/polytopia-world-model.pt --port 7331
-```
-
-### 5. Run the bot
-
-```bash
-cd polytopia-agent
 npm run bot
 ```
 
-That's it. The bot takes over and plays automatically.
+The world model server starts automatically in the background. The bot plays on its own from here.
 
 ---
 
@@ -66,33 +46,27 @@ That's it. The bot takes over and plays automatically.
 
 ## LLM setup (hybrid / llm modes)
 
-Set these env vars before running. Every LLM provider works — OpenRouter, OpenAI, Bedrock, LM Studio, anything with an OpenAI-compatible API.
+Works with any LLM provider — OpenRouter, OpenAI, Bedrock, LM Studio, anything OpenAI-compatible.
 
 ```bash
-# OpenRouter (recommended)
+# OpenRouter
 export LLM_PROVIDER=openai
 export LLM_BASE_URL=https://openrouter.ai/api/v1
 export LLM_MODEL=anthropic/claude-haiku-4-5-20251001
 export LLM_API_KEY=sk-or-...
-
 npm run bot:hybrid
-```
 
-```bash
 # AWS Bedrock (default if no provider set)
 npm run bot:hybrid
-```
 
-```bash
-# Local model via LM Studio
+# Local via LM Studio
 export LLM_PROVIDER=openai
 export LLM_BASE_URL=http://localhost:1234/v1
 export LLM_MODEL=your-model-name
-
 npm run bot:hybrid
 ```
 
-### All env vars
+### Env vars
 
 | Variable | Default | Notes |
 |----------|---------|-------|
@@ -117,10 +91,10 @@ npm run bot:hybrid
 
 ## Sessions
 
-Every run saves a full game log to `sessions/` as JSONL — turn by turn, with Mamba scores, chosen actions, and LLM reasoning. Files are gitignored and stay local.
+Every run saves a full game log to `sessions/` as JSONL — turn by turn, with world model scores, chosen actions, and LLM reasoning. Files stay local and are not committed.
 
 ---
 
 ## How it works
 
-The Mamba 130M model was trained on 41K synthetic Polytopia games via behavioral cloning. Each turn it scores every available action by `mean log P(action | state)` — higher score means the pattern matched more winning games. In hybrid mode, the LLM picks strategically between the world model's top candidates instead of choosing from scratch.
+The world model (Mamba 130M) was trained on 41K synthetic Polytopia games via behavioral cloning. Each turn it scores every available action by `mean log P(action | state)` — higher score means the pattern matched more winning games. In hybrid mode, the LLM picks strategically between the world model's top candidates instead of choosing from scratch.

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "External bot controller for Polytopia — wires Mamba world model to the official game API",
   "scripts": {
+    "postinstall": "python3 scripts/setup.py",
     "bot": "tsx src/bot.ts",
     "bot:mamba": "BOT_MODE=mamba tsx src/bot.ts",
     "bot:hybrid": "BOT_MODE=hybrid tsx src/bot.ts",
