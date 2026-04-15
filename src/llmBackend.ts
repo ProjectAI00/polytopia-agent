@@ -1,7 +1,8 @@
 /**
  * llmBackend.ts — Pluggable LLM interface.
  *
- * Configure via env vars:
+ * All config via env vars — no hardcoded credentials or defaults anywhere.
+ *
  *   LLM_PROVIDER=bedrock          → AWS Bedrock (default)
  *   LLM_PROVIDER=openai           → Any OpenAI-compatible API
  *                                   (OpenRouter, LM Studio, OpenAI, Anthropic, etc.)
@@ -12,6 +13,11 @@
  *                                   e.g. https://openrouter.ai/api/v1
  *                                        http://localhost:1234/v1  (LM Studio)
  *                                        https://api.openai.com/v1
+ *
+ *   AWS_REGION=...                → Bedrock region (default: us-east-1)
+ *   AWS_ACCESS_KEY_ID=...         → AWS credentials (or use ~/.aws/credentials / IAM role)
+ *   AWS_SECRET_ACCESS_KEY=...
+ *   AWS_SESSION_TOKEN=...         → Only needed for temporary credentials
  *
  * Defaults:
  *   Bedrock:      us.anthropic.claude-haiku-4-5-20251001-v1:0

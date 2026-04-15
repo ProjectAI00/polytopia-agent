@@ -1,51 +1,28 @@
 /**
- * hybridPlay.ts — Mamba world model + Claude Haiku hybrid bot.
- *
- * Pipeline per turn:
- *   1. Mamba ranks ALL available actions by log-probability (learned pattern matching)
- *   2. Top-N candidates (by Mamba score) are passed to Claude Haiku
- *   3. Haiku picks the best one with strategic reasoning
- *
- * This gives Mamba's trained pattern recognition + LLM's strategic reasoning.
- * Falls back to pure Mamba if LLM errors.
- *
- * Requires:
- *   - Polytopia running on external-bot-controller branch, cl_controlport 5060
- *   - Mamba server: cd polytopia-bench && python3 world_model/server.py --checkpoint checkpoints/best_v2.pt --port 7331
- *   - AWS credentials configured (uses Bedrock us-east-1)
+ * hybridPlay.ts — Legacy hybrid bot. Use bot.ts (BOT_MODE=hybrid) instead.
+ * LLM config via env vars — see llmBackend.ts.
  */
 
-import AnthropicBedrock from "@anthropic-ai/bedrock-sdk";
 import { getBotTurn, sendCommand } from "./gameApi.js";
 import { prepareRankInput } from "./adapter.js";
 import { rankActions, checkMamba } from "./mambaClient.js";
 import { buildPrompt } from "./llmFormatter.js";
+import { askLLM, getLLMInfo } from "./llmBackend.js";
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 const PASSTHROUGH_PLAYER = 255;
-const MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0";
-const TOP_N = 3; // how many Mamba top candidates to show the LLM
+const TOP_N = 3;
 
-const client = new AnthropicBedrock({ awsRegion: "us-east-1" });
-
-/**
- * Ask LLM to pick the best action from a pre-filtered candidate list.
- * The prompt tells LLM these are already Mamba's top picks so it focuses
- * on strategic reasoning between them, not from scratch.
- */
-async function askLLM(
+async function pickWithLLM(
   turn: any,
   botPlayerId: number,
   candidates: Array<{ idx: number; label: string; score: number }>,
 ): Promise<number> {
   const basePrompt = buildPrompt(turn, botPlayerId);
-
-  // Build a focused candidate-only action list
   const candidateList = candidates
     .map((c, i) => `${i + 1}. [${c.label}] (Mamba score: ${c.score.toFixed(2)})`)
     .join("\n");
-
   const hybridPrompt = `${basePrompt}
 
 The world model has pre-selected these top ${candidates.length} candidates (ranked by learned pattern):
@@ -53,13 +30,7 @@ ${candidateList}
 
 Choose the best of these ${candidates.length} options. Respond ONLY with JSON: {"choice": <1-${candidates.length}>, "reason": "<one sentence>"}`;
 
-  const msg = await client.messages.create({
-    model: MODEL,
-    max_tokens: 200,
-    messages: [{ role: "user", content: hybridPrompt }],
-  });
-
-  const text = (msg.content[0] as any).text ?? "";
+  const text = await askLLM(hybridPrompt, 200);
   const match = text.match(/\{[^}]+\}/);
   if (!match) {
     console.log(`  [llm] bad response — using Mamba top-1`);
@@ -82,7 +53,7 @@ async function main() {
     console.error("Mamba server not running on :7331. Start it first:\n  cd polytopia-bench && python3 world_model/server.py --checkpoint checkpoints/best_v2.pt --port 7331");
     process.exit(1);
   }
-  console.log(`Hybrid bot (Mamba top-${TOP_N} → Claude Haiku). Waiting...\n`);
+  console.log(`Hybrid bot (Mamba top-${TOP_N} → ${getLLMInfo()}). Waiting...\n`);
 
   let turnCount = 0;
 
@@ -149,7 +120,7 @@ async function main() {
       console.log(`  → ${topN[0].label} (only option)`);
     } else {
       try {
-        chosenIdx = await askLLM(turn, botPlayerId, topN);
+        chosenIdx = await pickWithLLM(turn, botPlayerId, topN);
       } catch (e: any) {
         console.log(`  [llm error] ${e.message} — using Mamba top-1`);
         chosenIdx = topN[0].idx;
