@@ -9,6 +9,9 @@
 # Each agent runs in its own terminal pane and owns one tribe.
 # BOT_MODE and LLM env vars are inherited from the shell.
 
+# Load .env if present
+[ -f .env ] && export $(grep -v '^#' .env | xargs)
+
 BOT_MODE="${BOT_MODE:-hybrid}"
 PLAYERS="${PLAYERS:-2 3 4}"
 
