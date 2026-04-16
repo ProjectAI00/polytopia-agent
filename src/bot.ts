@@ -20,12 +20,16 @@ import { Session, TurnEntry } from "./session.js";
 
 const MODEL_PATH = path.join(process.cwd(), "model", "polytopia-world-model.pt");
 const SERVER_SCRIPT = path.join(process.cwd(), "world_model", "server.py");
+// Use PYTHON_BIN env var if set, otherwise fall back to common venv location, then system python3
+const PYTHON_BIN = process.env.PYTHON_BIN
+  ?? (process.env.HOME ? `${process.env.HOME}/.imi/venv/bin/python3` : null)
+  ?? "python3";
 
 async function startMambaServer(): Promise<void> {
   if (await checkMamba()) return;
 
   console.log("Starting world model server...");
-  const proc = spawn("python3", [SERVER_SCRIPT, "--checkpoint", MODEL_PATH, "--port", "7331"], {
+  const proc = spawn(PYTHON_BIN, [SERVER_SCRIPT, "--checkpoint", MODEL_PATH, "--port", "7331"], {
     detached: true,
     stdio: ["ignore", "ignore", "ignore"],
     cwd: process.cwd(),
@@ -49,6 +53,11 @@ type Mode = "mamba" | "hybrid" | "llm";
 const MODE: Mode = (process.env.BOT_MODE ?? "mamba").toLowerCase() as Mode;
 const HYBRID_TOP_N = parseInt(process.env.HYBRID_TOP_N ?? "3");
 const PASSTHROUGH_PLAYER = 255;
+
+// PLAYER_ID: if set, this instance only handles that specific player.
+// Use for multi-agent setups where each bot instance owns one tribe.
+// If unset, handles all bot players (default single-process mode).
+const PLAYER_ID = process.env.PLAYER_ID ? parseInt(process.env.PLAYER_ID) : null;
 
 interface Decision {
   chosenIdx: number;
@@ -147,7 +156,8 @@ async function main() {
     ? `llm (${llmInfo})`
     : "mamba";
 
-  console.log(`Polytopia bot [${modeLabel}]. Waiting...\n`);
+  const playerLabel = PLAYER_ID !== null ? ` player=${PLAYER_ID}` : "";
+  console.log(`Polytopia bot [${modeLabel}${playerLabel}]. Waiting...\n`);
 
   const session = new Session(MODE, llmInfo);
   let turnCount = 0;
@@ -184,6 +194,13 @@ async function main() {
 
     // Barbarians / Wanderers — game handles them, just relay suggestion
     if (botPlayerId === PASSTHROUGH_PLAYER) {
+      try { await sendCommand(turn.SuggestedCommand ?? turn.Commands[0]); } catch {}
+      await sleep(300);
+      continue;
+    }
+
+    // Multi-agent mode: skip turns that belong to other player instances
+    if (PLAYER_ID !== null && botPlayerId !== PLAYER_ID) {
       try { await sendCommand(turn.SuggestedCommand ?? turn.Commands[0]); } catch {}
       await sleep(300);
       continue;

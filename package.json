@@ -8,6 +8,7 @@
     "bot:mamba": "BOT_MODE=mamba tsx src/bot.ts",
     "bot:hybrid": "BOT_MODE=hybrid tsx src/bot.ts",
     "bot:llm": "BOT_MODE=llm tsx src/bot.ts",
+    "play": "bash play.sh",
     "play": "tsx src/play.ts",
     "dev": "tsx watch src/bot.ts",
     "dump-state": "tsx src/dumpState.ts",
