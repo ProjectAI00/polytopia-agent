@@ -8,20 +8,13 @@ AI bot for [The Battle of Polytopia](https://store.steampowered.com/app/874390/T
 
 - Node.js 18+
 - Python 3.9+
-- The Battle of Polytopia (Steam)
+- Polytopia on the beta branch
 
 ---
 
 ## Setup
 
-**1. Steam launch option — do this once**
-
-In Steam, right-click Polytopia → Properties → Launch Options:
-```
-cl_controlport 5060
-```
-
-**2. Install**
+**1. Install**
 
 ```bash
 git clone https://github.com/ProjectAI00/polytopia-agent
@@ -31,7 +24,7 @@ npm install
 
 This downloads the world model (~300MB) and Python dependencies automatically.
 
-**3. Run**
+**2. Run**
 
 ```bash
 npm run bot

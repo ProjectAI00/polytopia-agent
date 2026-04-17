@@ -11,25 +11,11 @@ An AI bot for The Battle of Polytopia. You play as normal — the bot controls o
 You need:
 - [Node.js 18+](https://nodejs.org)
 - Python 3.9+
-- The Battle of Polytopia on Steam
+- Polytopia on the beta branch (API port is already active)
 
 ---
 
-## Step 1 — Steam launch option
-
-This is a one-time setting. It tells the game to open an API port so the bot can connect.
-
-1. Open Steam
-2. Right-click **The Battle of Polytopia** → **Properties**
-3. Under **Launch Options**, paste:
-   ```
-   cl_controlport 5060
-   ```
-4. Close. Every time you open the game from now on, the port will be active.
-
----
-
-## Step 2 — Install
+## Step 1 — Install
 
 ```bash
 git clone https://github.com/ProjectAI00/polytopia-agent
@@ -41,7 +27,7 @@ npm install
 
 ---
 
-## Step 3 — Configure
+## Step 2 — Configure
 
 ```bash
 npm run bot
@@ -63,11 +49,10 @@ Pick your option, follow the prompts, and your config is saved to `.env`. You wo
 
 ---
 
-## Step 4 — Play
+## Step 3 — Play
 
-1. Open Polytopia (with the Steam launch option set)
-2. Start a game that includes a bot player
-3. Run `npm run bot` in your terminal
+1. Open Polytopia and start a game that includes a bot player
+2. Run `npm run bot` in your terminal
 
 The bot takes over immediately when it's the bot player's turn. You play your own turns normally in the game window.
 
