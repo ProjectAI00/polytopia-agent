@@ -10,6 +10,7 @@
  */
 
 import { spawn } from "child_process";
+import fs from "fs";
 import path from "path";
 import { getBotTurn, sendCommand } from "./gameApi.js";
 import { prepareRankInput } from "./adapter.js";
@@ -17,6 +18,7 @@ import { rankActions, checkMamba } from "./mambaClient.js";
 import { buildPrompt } from "./llmFormatter.js";
 import { askLLM, getLLMInfo } from "./llmBackend.js";
 import { Session, TurnEntry } from "./session.js";
+import { runSetup } from "./setup.js";
 
 const MODEL_PATH = path.join(process.cwd(), "model", "polytopia-world-model.pt");
 const SERVER_SCRIPT = path.join(process.cwd(), "world_model", "server.py");
@@ -139,7 +141,28 @@ async function decideLLM(turn: any, botPlayerId: number): Promise<Decision> {
   return { chosenIdx: idx, label, reason };
 }
 
+function parseEnv(envPath: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
+    const t = line.trim();
+    if (!t || t.startsWith("#")) continue;
+    const eq = t.indexOf("=");
+    if (eq === -1) continue;
+    out[t.slice(0, eq).trim()] = t.slice(eq + 1).trim();
+  }
+  return out;
+}
+
 async function main() {
+  const envPath = path.join(process.cwd(), ".env");
+  if (!fs.existsSync(envPath)) {
+    await runSetup();
+    // Re-exec with the new .env in place
+    const { execFileSync } = await import("child_process");
+    execFileSync(process.execPath, process.argv.slice(1), { stdio: "inherit", env: { ...process.env, ...parseEnv(envPath) } });
+    return;
+  }
+
   if (MODE !== "mamba" && MODE !== "hybrid" && MODE !== "llm") {
     console.error(`Unknown BOT_MODE="${MODE}". Use mamba, hybrid, or llm.`);
     process.exit(1);

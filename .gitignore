@@ -5,3 +5,4 @@ state_dump.json
 .env
 sessions/*.jsonl
 model/*.pt
+.blackboxcli/

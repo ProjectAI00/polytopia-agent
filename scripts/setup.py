@@ -10,9 +10,14 @@ Steps:
   2. Download polytopia-world-model.pt from HuggingFace
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
+
+# Prefer venv python if available (has torch/transformers pre-installed)
+_venv_python = Path.home() / ".imi" / "venv" / "bin" / "python3"
+PYTHON = os.environ.get("PYTHON_BIN") or (str(_venv_python) if _venv_python.exists() else sys.executable)
 
 ROOT = Path(__file__).parent.parent
 MODEL_DIR = ROOT / "model"
@@ -21,9 +26,9 @@ HF_REPO = "aimar00/polytopia-world-model"
 
 # ── Step 1: Python deps ───────────────────────────────────────────────────────
 
-print("Installing Python dependencies...")
+print(f"Installing Python dependencies (using {PYTHON})...")
 subprocess.check_call([
-    sys.executable, "-m", "pip", "install", "--quiet",
+    PYTHON, "-m", "pip", "install", "--quiet",
     "torch", "transformers", "huggingface_hub",
 ])
 print("  ✓ torch, transformers, huggingface_hub")

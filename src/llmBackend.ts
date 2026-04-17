@@ -31,24 +31,27 @@
  *   openai/gpt-5.4-mini                  — OpenAI budget
  */
 
-const PROVIDER = process.env.LLM_PROVIDER ?? "bedrock";
-const MODEL = process.env.LLM_MODEL ?? (
-  PROVIDER === "bedrock"
-    ? "us.anthropic.claude-haiku-4-5-20251001-v1:0"
-    : "gpt-5.4-mini"
-);
+// All config read lazily at call time so .env loaders always win
+function provider() { return process.env.LLM_PROVIDER ?? "bedrock"; }
+function model() {
+  return process.env.LLM_MODEL ?? (
+    provider() === "bedrock"
+      ? "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+      : "blackboxai/openai/gpt-5.4-mini"
+  );
+}
 
 export function getLLMInfo(): string {
-  if (PROVIDER === "bedrock") return `bedrock/${MODEL}`;
+  if (provider() === "bedrock") return `bedrock/${model()}`;
   const base = process.env.LLM_BASE_URL ?? "https://api.openai.com/v1";
-  return `openai-compat/${MODEL} @ ${base}`;
+  return `${model()} @ ${base}`;
 }
 
 async function callBedrock(prompt: string, maxTokens: number): Promise<string> {
   const { default: AnthropicBedrock } = await import("@anthropic-ai/bedrock-sdk");
   const client = new AnthropicBedrock({ awsRegion: process.env.AWS_REGION ?? "us-east-1" });
   const msg = await client.messages.create({
-    model: MODEL,
+    model: model(),
     max_tokens: maxTokens,
     messages: [{ role: "user", content: prompt }],
   });
@@ -65,7 +68,7 @@ async function callOpenAICompat(prompt: string, maxTokens: number): Promise<stri
       ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: model(),
       max_tokens: maxTokens,
       messages: [{ role: "user", content: prompt }],
     }),
@@ -76,6 +79,6 @@ async function callOpenAICompat(prompt: string, maxTokens: number): Promise<stri
 }
 
 export async function askLLM(prompt: string, maxTokens = 256): Promise<string> {
-  if (PROVIDER === "bedrock") return callBedrock(prompt, maxTokens);
+  if (provider() === "bedrock") return callBedrock(prompt, maxTokens);
   return callOpenAICompat(prompt, maxTokens);
 }
