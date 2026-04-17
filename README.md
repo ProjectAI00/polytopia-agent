@@ -76,6 +76,14 @@ npm run play
 
 ---
 
+## Docs
+
+- [Getting started](docs/getting-started.md) — full setup walkthrough
+- [Modes](docs/modes.md) — mamba vs hybrid vs llm, provider options
+- [Multi-agent](docs/multi-agent.md) — running multiple bots at once
+
+---
+
 ## Sessions
 
 Every run saves a full game log to `sessions/` — actions, scores, and LLM reasoning. Stays local, never committed.
