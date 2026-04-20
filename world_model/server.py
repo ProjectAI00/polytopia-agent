@@ -33,6 +33,7 @@ import json
 import logging
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
 from pathlib import Path
 
 
@@ -155,6 +156,11 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json({"error": str(e)}, 500)
 
 
+class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle each request in a separate thread — allows concurrent agents."""
+    daemon_threads = True  # threads die when main process exits
+
+
 def make_handler(checkpoint: Path):
     class BoundHandler(Handler):
         pass
@@ -178,9 +184,9 @@ def main() -> None:
     # Eager load — fail fast if weights are broken
     log.info(f"Loading model from {checkpoint}…")
     get_scorer(checkpoint)
-    log.info(f"Model ready. Starting server on {args.host}:{args.port}")
+    log.info(f"Model ready. Starting threaded server on {args.host}:{args.port}")
 
-    server = HTTPServer((args.host, args.port), make_handler(checkpoint))
+    server = ThreadingHTTPServer((args.host, args.port), make_handler(checkpoint))
     try:
         server.serve_forever()
     except KeyboardInterrupt:

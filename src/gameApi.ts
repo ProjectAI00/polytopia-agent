@@ -9,6 +9,9 @@ import http from "http";
 
 const GAME_PORT = 5060;
 
+// Reuse TCP connections — avoids handshake overhead on every poll
+const _agent = new http.Agent({ keepAlive: true, maxSockets: 4 });
+
 function request(method: "GET" | "POST", path: string, body?: object, timeoutMs = 0): Promise<any> {
   return new Promise((resolve, reject) => {
     const bodyStr = body ? JSON.stringify(body) : undefined;
@@ -17,6 +20,7 @@ function request(method: "GET" | "POST", path: string, body?: object, timeoutMs 
       port: GAME_PORT,
       path,
       method,
+      agent: _agent,
       headers: {
         "Content-Type": "application/json",
         ...(bodyStr ? { "Content-Length": Buffer.byteLength(bodyStr) } : {}),

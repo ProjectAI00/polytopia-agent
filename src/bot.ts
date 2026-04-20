@@ -190,7 +190,7 @@ async function main() {
     try {
       turn = await getBotTurn(0);
     } catch (e: any) {
-      if (e.message?.startsWith("Bad JSON")) { await sleep(1000); continue; }
+      if (e.message?.startsWith("Bad JSON")) { await sleep(200); continue; }
       throw e;
     }
 
@@ -209,7 +209,6 @@ async function main() {
         : sc ? ` → ${sc.CommandType}` : "";
       console.log(`  [trigger] type=${triggerType}${detail}`);
       try { await sendCommand(sc); } catch {}
-      await sleep(500);
       continue;
     }
 
@@ -218,14 +217,13 @@ async function main() {
     // Barbarians / Wanderers — game handles them, just relay suggestion
     if (botPlayerId === PASSTHROUGH_PLAYER) {
       try { await sendCommand(turn.SuggestedCommand ?? turn.Commands[0]); } catch {}
-      await sleep(300);
       continue;
     }
 
-    // Multi-agent mode: skip turns that belong to other player instances
+    // Multi-agent mode: skip turns that belong to other player instances.
+    // Do NOT send any command — the other agent process owns that player.
     if (PLAYER_ID !== null && botPlayerId !== PLAYER_ID) {
-      try { await sendCommand(turn.SuggestedCommand ?? turn.Commands[0]); } catch {}
-      await sleep(300);
+      await sleep(50); // brief poll delay before re-checking
       continue;
     }
 
@@ -243,7 +241,6 @@ async function main() {
     } catch (e: any) {
       console.log(`  [decide error] ${e.message} — using suggested`);
       try { await sendCommand(turn.SuggestedCommand); } catch {}
-      await sleep(500);
       continue;
     }
 
@@ -261,10 +258,10 @@ async function main() {
     } catch (e: any) {
       const msg = e.message ?? "";
       if (msg.includes("No pending turn")) {
-        await sleep(2000);
+        await sleep(300); // game hasn't advanced yet — brief back-off
       } else {
         console.log(`  [rejected] ${msg.slice(0, 60)}`);
-        await sleep(500);
+        await sleep(100); // brief pause on unexpected errors
       }
     }
 
@@ -285,8 +282,6 @@ async function main() {
       accepted,
     };
     session.log(entry);
-
-    await sleep(300);
   }
 
   console.log(`\nDone. ${turnCount} actions played.`);

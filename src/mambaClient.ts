@@ -1,12 +1,18 @@
 /**
  * mambaClient.ts — HTTP client for the Mamba world model server.
- * Server lives in polytopia-bench/world_model/server.py, port 7331.
+ * Server lives in world_model/server.py, port 7331.
+ *
+ * Uses a persistent keep-alive Agent so TCP connections are reused across
+ * requests — eliminates per-call handshake overhead (~5-15ms each).
  */
 
 import http from "http";
 
 const MAMBA_HOST = "127.0.0.1";
 const MAMBA_PORT = 7331;
+
+// Reuse TCP connections across all requests to the model server
+const _agent = new http.Agent({ keepAlive: true, maxSockets: 8 });
 
 function post(path: string, body: object): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -16,6 +22,7 @@ function post(path: string, body: object): Promise<any> {
       port: MAMBA_PORT,
       path,
       method: "POST",
+      agent: _agent,
       headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(bodyStr) },
     }, (res) => {
       let data = "";
@@ -34,7 +41,7 @@ function post(path: string, body: object): Promise<any> {
 /** Health check — verifies Mamba server is running. */
 export async function checkMamba(): Promise<boolean> {
   return new Promise((resolve) => {
-    http.get({ host: MAMBA_HOST, port: MAMBA_PORT, path: "/health" }, (res) => {
+    http.get({ host: MAMBA_HOST, port: MAMBA_PORT, path: "/health", agent: _agent }, (res) => {
       resolve(res.statusCode === 200);
     }).on("error", () => resolve(false));
   });

@@ -19,7 +19,7 @@
     "llm": "tsx src/llmPlay.ts",
     "hybrid": "tsx src/hybridPlay.ts",
     "test:llm": "tsx src/testLLM.ts",
-    "start:1v1": "BOT_MODE=hybrid tsx src/startGame.ts",
+    "start:1v1": "BOT_MODE=mamba tsx src/startGame.ts",
     "orchestrate": "tsx src/orchestrator.ts",
     "orchestrate:1v1": "PLAYERS=2 tsx src/orchestrator.ts",
     "orchestrate:3p": "PLAYERS=\"2 3\" tsx src/orchestrator.ts"

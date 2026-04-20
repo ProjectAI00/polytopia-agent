@@ -51,6 +51,17 @@ def _get_device() -> torch.device:
     return torch.device("cpu")
 
 
+def _maybe_compile(model: MambaForCausalLM) -> MambaForCausalLM:
+    """Apply torch.compile if available (PyTorch >= 2.0). Silently skips otherwise."""
+    try:
+        compiled = torch.compile(model)
+        log.info("torch.compile applied — first inference will be slow (warmup), then fast.")
+        return compiled  # type: ignore[return-value]
+    except Exception as e:
+        log.info(f"torch.compile not available ({e}), running eager.")
+        return model
+
+
 def _load_model(path: Path, device: torch.device) -> MambaForCausalLM:
     """
     Load Mamba model from checkpoint.
@@ -97,6 +108,12 @@ def _load_model(path: Path, device: torch.device) -> MambaForCausalLM:
     model.load_state_dict(state, strict=True)
     model.to(device)
     model.eval()
+
+    # Use half-precision on CUDA for ~2x throughput (MPS fp16 is unstable, skip)
+    if device.type == "cuda":
+        model = model.half()
+        log.info("Using fp16 on CUDA.")
+
     return model
 
 
@@ -140,6 +157,7 @@ class PolytopiaMambaScorer(WorldModelScorer):
     ):
         self._device = device or _get_device()
         self._model = _load_model(checkpoint, self._device)
+        self._model = _maybe_compile(self._model)
         self._top_k = top_k
         log.info(f"PolytopiaMambaScorer ready on {self._device}")
 

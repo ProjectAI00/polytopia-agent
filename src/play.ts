@@ -35,8 +35,7 @@ async function main() {
       turn = await getBotTurn(0);
     } catch (e: any) {
       if (e.message?.startsWith("Bad JSON")) {
-        // Empty body = game signalling end of commands, wait for next turn
-        await sleep(1000);
+        await sleep(200);
         continue;
       }
       throw e;
@@ -52,7 +51,6 @@ async function main() {
     if (!turn.Commands || turn.Commands.length === 0) {
       console.log(`  [trigger] ${turn.Trigger?.type ?? "unknown"} — following suggestion`);
       try { await sendCommand(turn.SuggestedCommand); } catch {}
-      await sleep(500);
       continue;
     }
 
@@ -61,7 +59,6 @@ async function main() {
     // Pass through Barbarians/Wanderers — just send their suggested command
     if (botPlayerId === PASSTHROUGH_PLAYER) {
       try { await sendCommand(turn.SuggestedCommand ?? turn.Commands[0]); } catch {}
-      await sleep(300);
       continue;
     }
 
@@ -88,15 +85,12 @@ async function main() {
     } catch (e: any) {
       const msg = e.message ?? "";
       if (msg.includes("No pending turn")) {
-        // Game already moved on — back off and wait for next real turn
-        await sleep(2000);
+        await sleep(300);
       } else {
         console.log(`  [rejected] ${msg.slice(0, 60)}`);
-        await sleep(500);
+        await sleep(100);
       }
     }
-
-    await sleep(200);
   }
 
   console.log(`\nDone. ${turnCount} actions played.`);

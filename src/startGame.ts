@@ -194,8 +194,7 @@ async function main() {
     try {
       turn = await getBotTurn(0);
     } catch (e: any) {
-      if (e.message?.startsWith("Bad JSON")) { await sleep(1000); continue; }
-      throw e;
+      await sleep(200); continue;
     }
 
     if (turn.SuggestedCommand?.CommandType === "EndMatch") {
@@ -210,7 +209,6 @@ async function main() {
       const triggerType = turn.Trigger?.type ?? "unknown";
       console.log(`  [trigger] ${triggerType} → ${sc?.CommandType ?? "?"}`);
       try { await sendCommand(sc); } catch {}
-      await sleep(500);
       continue;
     }
 
@@ -219,7 +217,6 @@ async function main() {
     // Passthrough barbarians
     if (botPlayerId === PASSTHROUGH_PLAYER) {
       try { await sendCommand(turn.SuggestedCommand ?? turn.Commands[0]); } catch {}
-      await sleep(300);
       continue;
     }
 
@@ -236,7 +233,6 @@ async function main() {
     } catch (e: any) {
       console.log(`  [decide error] ${e.message} — using suggested`);
       try { await sendCommand(turn.SuggestedCommand); } catch {}
-      await sleep(500);
       continue;
     }
 
@@ -252,8 +248,8 @@ async function main() {
       }
     } catch (e: any) {
       const msg = e.message ?? "";
-      if (msg.includes("No pending turn")) { await sleep(2000); }
-      else { console.log(`  [rejected] ${msg.slice(0, 60)}`); await sleep(500); }
+      if (msg.includes("No pending turn")) { await sleep(300); }
+      else { console.log(`  [rejected] ${msg.slice(0, 60)}`); await sleep(100); }
     }
 
     const entry: TurnEntry = {
@@ -270,8 +266,6 @@ async function main() {
       accepted,
     };
     session.log(entry);
-
-    await sleep(300);
   }
 }
 
